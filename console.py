@@ -113,17 +113,53 @@ class HBNBCommand(cmd.Cmd):
         """ Overrides the emptyline method of CMD """
         pass
 
-    def do_create(self, args):
-        """ Create an object of any class"""
-        if not args:
-            print("** class name missing **")
+    def do_create(self, arg):
+        """Create a new instance of a class with given parameters."""
+        # Split the command line argument string into a list of arguments
+        args = arg.split()
+        # Check if the minimum number of arguments (class name) is provided
+        if len(args) < 1:
+            print("Invalid command")
             return
-        elif args not in HBNBCommand.classes:
-            print("** class doesn't exist **")
-            return
-        new_instance = HBNBCommand.classes[args]()
+        # Extract the class name from the first argument
+        class_name = args[0]
+        # Extract the remaining arguments as parameters
+        params = args[1:]
+        # Initialize an empty dictionary to hold the parameters
+        params_dict = {}
+        # Create a new instance of the specified class and save it to storage
+        new_instance = HBNBCommand.classes[args[0]]()
         storage.save()
         print(new_instance.id)
+        storage.save()
+        """
+        Loop through each parameter
+        Split the parameter into key and value
+        Check if the value is a string (starts and ends with double quotes)
+        Check if the value is a float (contains a dot)
+        Convert the value to a float
+        Assume the value is an integer
+        Add the key-value pair to the dictionary
+        If the parameter is not valid, skip it and print an error message
+        Update the instance with the parameters
+        """
+        for param in params:
+            try:
+                key, value = param.split('=')
+                if value.startswith('"') and value.endswith('"'):
+                    value = value[1:-1].replace('\\"', '"').replace('_', ' ')
+                elif '.' in value:
+                    value = float(value)
+                else:
+                    value = int(value)
+                params_dict[key] = value
+            except ValueError:
+                print(f"Parameter '{param}' is not valid.")
+                continue
+            for key, value in params_dict.items():
+                setattr(new_instance, key, value)
+        # Save the updated instance to storage
+        storage.new(new_instance)
         storage.save()
 
     def help_create(self):
